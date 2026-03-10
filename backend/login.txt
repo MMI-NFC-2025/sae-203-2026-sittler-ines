@@ -1,0 +1,9 @@
+Variables recommandees (.env):
+PUBLIC_POCKETBASE_URL=https://sae203.ines-sittler.fr
+PUBLIC_PB_ARTISTS_COLLECTION=artistes
+PUBLIC_PB_SCENES_COLLECTION=scenes
+
+Optionnel (backend/backend.mjs ecriture/admin):
+PB_ADMIN_EMAIL=...
+PB_ADMIN_PASSWORD=...
+RUN_WRITE_TESTS=1

@@ -1,0 +1,43 @@
+---
+import Pbimage from "./Pbimage.astro";
+const { id = `carousel-${Math.random().toString(36).slice(2)}`, items = [] } = Astro.props;
+---
+
+<section id={id} class="space-y-4" data-carousel-root>
+  <div class="flex items-center justify-end gap-2">
+    <button
+      type="button"
+      class="carousel-prev inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-black/35 text-white transition hover:border-cyan-300"
+      aria-label="Image precedente"
+    >
+      <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M15 18l-6-6 6-6"></path>
+      </svg>
+    </button>
+    <button
+      type="button"
+      class="carousel-next inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-black/35 text-white transition hover:border-cyan-300"
+      aria-label="Image suivante"
+    >
+      <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M9 18l6-6-6-6"></path>
+      </svg>
+    </button>
+  </div>
+
+  <div class="carousel-track flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2" style="scrollbar-width:none;">
+    {
+      items.map((item) => (
+        <figure class="min-w-full snap-center overflow-hidden rounded-2xl border border-white/15 md:min-w-[48%] lg:min-w-[32%]">
+          <Pbimage src={item.src} alt={item.alt || ""} class="h-64 w-full object-cover md:h-72" loading="lazy" />
+        </figure>
+      ))
+    }
+  </div>
+</section>
+
+<script>
+  import { initCarousels } from "../js/carousel.js";
+
+  initCarousels();
+</script>

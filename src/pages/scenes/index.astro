@@ -1,0 +1,46 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import SceneCard from "../../components/SceneCard.astro";
+import { getScenes } from "../../../backend/backend.mjs";
+
+const scenesResult = await getScenes();
+const scenes = scenesResult.items;
+const loadError = scenesResult.error;
+---
+
+<Layout
+  title="FlyTapFest | Scenes"
+  description="Toutes les scenes du FlyTapFest"
+  currentPath={Astro.url.pathname}
+>
+  <section class="section-fly">
+    <div class="container-fly">
+      <div class="mb-8 flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p class="text-sm uppercase tracking-[0.2em] text-cyan-200/70">Lieux</p>
+          <h1 class="title-gradient mt-2 text-4xl font-bold md:text-5xl">Les Scenes</h1>
+        </div>
+        <a href="/scenes/create" class="btn-fly-secondary text-sm">Ajouter une scene</a>
+      </div>
+
+      {
+        loadError ? (
+          <div class="card-fly p-8 text-center text-slate-300">
+            {loadError}
+          </div>
+        ) : scenes.length ? (
+          <div class="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+            {scenes.map((scene) => <SceneCard scene={scene} />)}
+          </div>
+        ) : (
+          <div class="card-fly p-8 text-center text-slate-300">
+            Aucune scene disponible pour le moment.
+          </div>
+        )
+      }
+    </div>
+  </section>
+</Layout>
+
+
+

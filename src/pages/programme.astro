@@ -1,0 +1,223 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Pbimage from "../components/Pbimage.astro";
+import { getArtists, getScenes } from "../../backend/backend.mjs";
+
+const artistsResult = await getArtists();
+const scenesResult = await getScenes();
+const artists = artistsResult.items;
+const scenes = scenesResult.items;
+const loadError = artistsResult.error || scenesResult.error;
+
+const search = new URL(Astro.request.url).searchParams;
+const selectedGenre = search.get("genre") || "";
+const selectedScene = search.get("scene") || "";
+const selectedTime = search.get("horaire") || "";
+
+function getGenres(artist) {
+  if (Array.isArray(artist.genres) && artist.genres.length) return artist.genres;
+  if (!artist.genre) return [];
+  return `${artist.genre}`
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function parseDateParts(value) {
+  const raw = `${value || ""}`;
+  const dateMatch = raw.match(/(\d{4})-(\d{2})-(\d{2})/);
+  const timeMatch = raw.match(/(?:T|\s)(\d{2}):(\d{2})/);
+
+  return {
+    dateKey: dateMatch ? `${dateMatch[1]}-${dateMatch[2]}-${dateMatch[3]}` : "",
+    timeKey: timeMatch ? `${timeMatch[1]}:${timeMatch[2]}` : "",
+  };
+}
+
+function formatDayLabel(dateKey) {
+  if (!dateKey) return "Programmation a venir";
+  const date = new Date(`${dateKey}T12:00:00`);
+  if (Number.isNaN(date.getTime())) return dateKey;
+
+  return new Intl.DateTimeFormat("fr-FR", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  }).format(date);
+}
+
+function formatTimeLabel(value) {
+  const { timeKey } = parseDateParts(value);
+  return timeKey || "Horaire a confirmer";
+}
+
+function sortByDate(a, b) {
+  const dateA = `${a.date || ""}`;
+  const dateB = `${b.date || ""}`;
+  return dateA.localeCompare(dateB, "fr");
+}
+
+const genres = Array.from(new Set(artists.flatMap((artist) => getGenres(artist)))).sort((a, b) =>
+  a.localeCompare(b, "fr"),
+);
+const scheduleOptions = Array.from(
+  new Set(
+    artists
+      .map((artist) => formatTimeLabel(artist.date))
+      .filter((value) => value && value !== "Horaire a confirmer"),
+  ),
+).sort((a, b) => a.localeCompare(b, "fr"));
+
+const filteredArtists = [...artists]
+  .filter((artist) => {
+    const matchesGenre = selectedGenre ? getGenres(artist).includes(selectedGenre) : true;
+    const matchesScene = selectedScene ? artist.sceneId === selectedScene || artist.sceneName === selectedScene : true;
+    const matchesTime = selectedTime ? formatTimeLabel(artist.date) === selectedTime : true;
+    return matchesGenre && matchesScene && matchesTime;
+  })
+  .sort(sortByDate);
+
+const groups = new Map();
+for (const artist of filteredArtists) {
+  const { dateKey } = parseDateParts(artist.date);
+  const key = dateKey || "a-venir";
+  if (!groups.has(key)) groups.set(key, []);
+  groups.get(key).push(artist);
+}
+
+const groupedArtists = [...groups.entries()].sort((a, b) => a[0].localeCompare(b[0], "fr"));
+---
+
+<Layout
+  title="FlyTapFest | Programme"
+  description="Programme complet du FlyTapFest"
+  currentPath={Astro.url.pathname}
+>
+  <section class="section-fly">
+    <div class="container-fly space-y-8">
+      <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+          <p class="text-sm uppercase tracking-[0.2em] text-cyan-200/70">Programme</p>
+          <h1 class="title-gradient mt-2 text-4xl font-bold md:text-5xl">Planning des performances</h1>
+          <p class="mt-4 max-w-3xl text-sm leading-7 text-slate-300 md:text-base">
+            Retrouvez la programmation des artistes par jour, puis filtrez selon le genre, l'horaire ou la scene.
+          </p>
+        </div>
+
+        <a href="/assets/flytapfest-programme.pdf" download class="btn-fly-secondary text-sm">
+          Telecharger le programme PDF
+        </a>
+      </div>
+
+      <form method="GET" class="card-fly grid gap-4 p-4 md:grid-cols-4">
+        <label class="grid gap-2 text-sm">
+          <span class="text-slate-300">Genre</span>
+          <select name="genre" class="input-fly">
+            <option value="">Tous</option>
+            {genres.map((genre) => <option value={genre} selected={genre === selectedGenre}>{genre}</option>)}
+          </select>
+        </label>
+
+        <label class="grid gap-2 text-sm">
+          <span class="text-slate-300">Horaire</span>
+          <select name="horaire" class="input-fly">
+            <option value="">Tous</option>
+            {scheduleOptions.map((time) => <option value={time} selected={time === selectedTime}>{time}</option>)}
+          </select>
+        </label>
+
+        <label class="grid gap-2 text-sm">
+          <span class="text-slate-300">Scene</span>
+          <select name="scene" class="input-fly">
+            <option value="">Toutes</option>
+            {scenes.map((scene) => <option value={scene.id} selected={scene.id === selectedScene}>{scene.name}</option>)}
+          </select>
+        </label>
+
+        <div class="flex items-end gap-2">
+          <button type="submit" class="btn-fly-primary w-full justify-center text-sm">Filtrer</button>
+          <a href="/programme" class="btn-fly-secondary w-full justify-center text-sm">Reset</a>
+        </div>
+      </form>
+
+      {
+        loadError ? (
+          <div class="card-fly p-8 text-center text-slate-300">{loadError}</div>
+        ) : filteredArtists.length ? (
+          <div class="space-y-10">
+            {groupedArtists.map(([dateKey, dayArtists]) => (
+              <section class="space-y-4">
+                <div class="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                  <div>
+                    <p class="text-sm uppercase tracking-[0.18em] text-cyan-200/70">Jour</p>
+                    <h2 class="text-3xl font-bold text-white capitalize">{formatDayLabel(dateKey === "a-venir" ? "" : dateKey)}</h2>
+                  </div>
+                  <p class="text-sm text-slate-400">{dayArtists.length} performance{dayArtists.length > 1 ? "s" : ""}</p>
+                </div>
+
+                <div class="space-y-4">
+                  {dayArtists.map((artist) => (
+                    <article class="card-fly grid gap-5 overflow-hidden p-4 md:grid-cols-[180px_1fr_auto] md:p-5">
+                      <Pbimage
+                        src={artist.image}
+                        alt={artist.name}
+                        loading="lazy"
+                        class="h-44 w-full rounded-xl object-cover md:h-full md:min-h-[180px]"
+                      />
+
+                      <div class="space-y-3">
+                        <div class="flex flex-wrap gap-2 text-xs">
+                          <span class="rounded-full border border-cyan-300/40 px-3 py-1 text-cyan-200">{formatTimeLabel(artist.date)}</span>
+                          {artist.sceneName && <span class="rounded-full border border-fuchsia-300/40 px-3 py-1 text-fuchsia-200">{artist.sceneName}</span>}
+                          {getGenres(artist).map((genre) => <span class="rounded-full border border-violet-300/40 px-3 py-1 text-violet-200">{genre}</span>)}
+                        </div>
+
+                        <div>
+                          <h3 class="text-3xl font-bold text-white">{artist.name}</h3>
+                          {artist.bio && <p class="mt-3 text-sm leading-7 text-slate-300">{artist.bio}</p>}
+                        </div>
+                      </div>
+
+                      <div class="flex items-start md:justify-end">
+                        <a href={`/artists/${artist.slug || artist.id}`} class="btn-fly-secondary text-sm">Voir la fiche</a>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              </section>
+            ))}
+          </div>
+        ) : (
+          <div class="card-fly p-8 text-center text-slate-300">
+            {artists.length ? "Aucune performance ne correspond aux filtres selectionnes." : "La programmation sera bientot disponible."}
+          </div>
+        )
+      }
+    </div>
+  </section>
+
+  <section class="section-fly bg-black/20">
+    <div class="container-fly grid gap-5 md:grid-cols-3">
+      <article class="card-fly space-y-4 p-6">
+        <h2 class="text-2xl font-bold text-white">Horaires</h2>
+        <p class="text-sm leading-7 text-slate-300">
+          La programmation peut evoluer. Pensez a arriver au moins 30 minutes avant l'horaire indique pour acceder sereinement aux scenes.
+        </p>
+      </article>
+
+      <article class="card-fly space-y-4 p-6">
+        <h2 class="text-2xl font-bold text-white">Lieux</h2>
+        <p class="text-sm leading-7 text-slate-300">
+          Toutes les performances ont lieu au Parc du Pres-la-Rose, avec une signaletique dediee entre les differents espaces du festival.
+        </p>
+      </article>
+
+      <article class="card-fly space-y-4 p-6">
+        <h2 class="text-2xl font-bold text-white">Reservation</h2>
+        <p class="text-sm leading-7 text-slate-300">
+          Certains temps forts attirent davantage de public. Consultez les tarifs et informations d'acces avant votre venue.
+        </p>
+      </article>
+    </div>
+  </section>
+</Layout>

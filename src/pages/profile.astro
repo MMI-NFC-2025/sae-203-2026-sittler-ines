@@ -1,0 +1,198 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Pbimage from "../components/Pbimage.astro";
+import { PB_URL } from "../js/pocketbase.js";
+import { buildAuthResponse, buildLogoutResponse, getErrorMessage, getSessionUser } from "../js/auth.js";
+
+const session = await getSessionUser(Astro);
+if (!session.user) {
+  return Astro.redirect("/login");
+}
+
+if (session.setCookie) {
+  Astro.response.headers.set("Set-Cookie", session.setCookie);
+}
+
+const pb = session.pb;
+const user = session.user;
+
+let successMessage = "";
+let errorMessage = "";
+
+if (Astro.request.method === "POST") {
+  const formData = await Astro.request.formData();
+  const intent = `${formData.get("intent") || "update"}`;
+
+  if (intent === "logout") {
+    return buildLogoutResponse("/login");
+  }
+
+  if (intent === "delete-account") {
+    try {
+      await pb.collection("users").delete(user.id);
+      return buildLogoutResponse("/");
+    } catch (error) {
+      errorMessage = getErrorMessage(error, "Impossible de supprimer le compte.");
+    }
+  }
+
+  if (intent === "update") {
+    const name = `${formData.get("name") || ""}`.trim();
+    const avatar = formData.get("avatar");
+    const payload = { name };
+
+    if (avatar instanceof File && avatar.size > 0) {
+      payload.avatar = avatar;
+    }
+
+    try {
+      await pb.collection("users").update(user.id, payload);
+      await pb.collection("users").authRefresh();
+      return buildAuthResponse(pb, "/profile?updated=1");
+    } catch (error) {
+      errorMessage = getErrorMessage(error, "Impossible de mettre a jour le profil.");
+    }
+  }
+}
+
+const currentUser = pb.authStore.record || user;
+const avatarUrl = currentUser?.avatar
+  ? `${PB_URL}/api/files/${currentUser.collectionId || currentUser.collectionName || "users"}/${currentUser.id}/${currentUser.avatar}`
+  : "";
+
+if (!errorMessage && Astro.url.searchParams.get("updated") === "1") {
+  successMessage = "Profil mis a jour.";
+}
+---
+
+<Layout
+  title="FlyTapFest | Profil"
+  description="Profil utilisateur FlyTapFest"
+  currentPath={Astro.url.pathname}
+>
+  <section class="section-fly">
+    <div class="container-fly">
+      <div class="mx-auto max-w-4xl space-y-8">
+        <div class="text-center">
+          <p class="text-sm uppercase tracking-[0.2em] text-cyan-200/70">Espace membre</p>
+          <h1 class="mt-2 text-4xl font-bold text-white md:text-5xl">Mon profil</h1>
+        </div>
+
+        <div class="grid gap-4 md:grid-cols-2">
+          <a href="/artists/create" class="btn-fly-primary justify-center">Ajouter un artiste</a>
+          <a href="/scenes/create" class="btn-fly-secondary justify-center">Ajouter une scene</a>
+        </div>
+
+        <div class="grid gap-6 lg:grid-cols-[320px_1fr]">
+          <aside class="card-fly space-y-5 p-6">
+            <div class="overflow-hidden rounded-2xl border border-white/15 bg-black/30">
+              {
+                avatarUrl ? (
+                  <Pbimage src={avatarUrl} alt={`Avatar de ${currentUser.name || currentUser.email}`} class="h-72 w-full object-cover" />
+                ) : (
+                  <div class="flex h-72 items-center justify-center text-center text-slate-400">
+                    Aucun avatar
+                  </div>
+                )
+              }
+            </div>
+
+            <div class="space-y-2">
+              <p class="text-xs uppercase tracking-[0.15em] text-slate-400">Email</p>
+              <p class="text-base font-semibold text-white">{currentUser.email}</p>
+            </div>
+
+            <div class="flex flex-wrap gap-2">
+              <span class="rounded-full border border-cyan-300/40 px-3 py-1 text-xs text-cyan-200">
+                {currentUser.verified ? "Compte verifie" : "Compte non verifie"}
+              </span>
+              {currentUser.created && (
+                <span class="rounded-full border border-fuchsia-300/40 px-3 py-1 text-xs text-fuchsia-200">
+                  Cree le {new Date(currentUser.created).toLocaleDateString("fr-FR")}
+                </span>
+              )}
+            </div>
+          </aside>
+
+          <div class="card-fly p-6 md:p-8">
+            <form method="post" enctype="multipart/form-data" class="space-y-5">
+              <input type="hidden" name="intent" value="update" />
+
+              <div class="space-y-2">
+                <label for="profile-name" class="text-sm font-semibold text-slate-200">Nom</label>
+                <input
+                  id="profile-name"
+                  name="name"
+                  type="text"
+                  required
+                  value={currentUser.name || ""}
+                  class="input-fly"
+                  placeholder="Votre nom"
+                />
+              </div>
+
+              <div class="space-y-2">
+                <label for="profile-email" class="text-sm font-semibold text-slate-200">Email</label>
+                <input
+                  id="profile-email"
+                  type="email"
+                  value={currentUser.email}
+                  class="input-fly cursor-not-allowed opacity-70"
+                  disabled
+                />
+              </div>
+
+              <div class="space-y-2">
+                <label for="profile-avatar" class="text-sm font-semibold text-slate-200">Avatar</label>
+                <input
+                  id="profile-avatar"
+                  name="avatar"
+                  type="file"
+                  accept="image/*"
+                  class="input-fly file:mr-4 file:rounded-full file:border-0 file:bg-cyan-300/15 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-cyan-100"
+                />
+              </div>
+
+              {successMessage && (
+                <p class="rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
+                  {successMessage}
+                </p>
+              )}
+
+              {errorMessage && (
+                <p class="rounded-xl border border-red-400/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+                  {errorMessage}
+                </p>
+              )}
+
+              <button type="submit" class="btn-fly-primary justify-center">Enregistrer le profil</button>
+            </form>
+
+            <form method="post" class="mt-4">
+              <input type="hidden" name="intent" value="logout" />
+              <button type="submit" class="btn-fly-secondary justify-center">Se deconnecter</button>
+            </form>
+
+            <div class="mt-8 rounded-2xl border border-red-400/25 bg-red-500/5 p-5">
+              <h2 class="text-2xl font-semibold text-white">Supprimer le compte</h2>
+              <p class="mt-3 text-sm leading-7 text-slate-300">
+                Cette action est definitive. Votre compte et votre session seront supprimes.
+              </p>
+
+              <form method="post" class="mt-4">
+                <input type="hidden" name="intent" value="delete-account" />
+
+                <button
+                  type="submit"
+                  class="inline-flex items-center justify-center rounded-full border border-red-300/50 bg-red-500/15 px-5 py-3 font-semibold text-red-100 transition hover:bg-red-500/25"
+                >
+                  Supprimer mon compte
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</Layout>

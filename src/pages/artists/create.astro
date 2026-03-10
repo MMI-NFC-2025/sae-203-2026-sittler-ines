@@ -1,0 +1,184 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import { getScenes, saveArtist } from "../../../backend/backend.mjs";
+import { buildAuthResponse, getErrorMessage, getSessionUser, isSuperuserOnlyError } from "../../js/auth.js";
+
+const GENRE_OPTIONS = ["Tap dance", "Electro", "Experimental tap"];
+
+const session = await getSessionUser(Astro);
+if (!session.user) {
+  return Astro.redirect("/login");
+}
+
+if (session.setCookie) {
+  Astro.response.headers.set("Set-Cookie", session.setCookie);
+}
+
+const scenesResult = await getScenes();
+const scenes = scenesResult.items;
+
+let errorMessage = "";
+let values = {
+  Nom: "",
+  Description: "",
+  Date: "",
+  Scene: "",
+  Genre: [],
+};
+
+if (Astro.request.method === "POST") {
+  const formData = await Astro.request.formData();
+  values = {
+    Nom: `${formData.get("Nom") || ""}`.trim(),
+    Description: `${formData.get("Description") || ""}`.trim(),
+    Date: `${formData.get("Date") || ""}`.trim(),
+    Scene: `${formData.get("Scene") || ""}`.trim(),
+    Genre: formData
+      .getAll("Genre")
+      .map((value) => `${value}`.trim())
+      .filter(Boolean),
+  };
+
+  const image = formData.get("Image");
+  const galerie = formData
+    .getAll("Galerie")
+    .filter((file) => file instanceof File && file.size > 0);
+
+  const payload = {
+    Nom: values.Nom,
+    Description: values.Description,
+    Date: values.Date ? new Date(values.Date).toISOString() : "",
+    Scene: values.Scene,
+    Genre: values.Genre,
+  };
+
+  if (image instanceof File && image.size > 0) {
+    payload.Image = image;
+  }
+
+  if (galerie.length) {
+    payload.Galerie = galerie;
+  }
+
+  try {
+    let createdArtist;
+
+    try {
+      createdArtist = await saveArtist(payload, session.pb);
+    } catch (error) {
+      if (!isSuperuserOnlyError(error)) throw error;
+      createdArtist = await saveArtist(payload);
+    }
+
+    return buildAuthResponse(session.pb, `/artists/${createdArtist.id}`);
+  } catch (error) {
+    errorMessage = isSuperuserOnlyError(error)
+      ? "La creation d'artiste est indisponible pour le moment."
+      : getErrorMessage(error, "Impossible de creer l'artiste.");
+  }
+}
+---
+
+<Layout
+  title="FlyTapFest | Ajouter un artiste"
+  description="Ajout d'un artiste"
+  currentPath="/artists"
+>
+  <section class="section-fly">
+    <div class="container-fly">
+      <div class="mx-auto max-w-3xl">
+        <div class="mb-8">
+          <p class="text-sm uppercase tracking-[0.2em] text-cyan-200/70">Administration</p>
+          <h1 class="mt-2 text-4xl font-bold text-white md:text-5xl">Ajouter un artiste</h1>
+          <p class="mt-4 max-w-2xl text-sm leading-7 text-slate-300 md:text-base">
+            Ajoute un nouvel artiste avec son image principale, sa galerie et sa scene.
+          </p>
+        </div>
+
+        <div class="card-fly p-6 md:p-8">
+          <form method="post" enctype="multipart/form-data" class="grid gap-5">
+            <div class="space-y-2">
+              <label for="artist-name" class="text-sm font-semibold text-slate-200">Nom</label>
+              <input id="artist-name" name="Nom" type="text" required value={values.Nom} class="input-fly" />
+            </div>
+
+            <div class="space-y-2">
+              <label for="artist-description" class="text-sm font-semibold text-slate-200">Description</label>
+              <textarea id="artist-description" name="Description" rows="5" class="input-fly">{values.Description}</textarea>
+            </div>
+
+            <div class="grid gap-5 md:grid-cols-2">
+              <div class="space-y-2">
+                <label for="artist-date" class="text-sm font-semibold text-slate-200">Date</label>
+                <input id="artist-date" name="Date" type="datetime-local" required value={values.Date} class="input-fly" />
+              </div>
+
+              <div class="space-y-2">
+                <label for="artist-scene" class="text-sm font-semibold text-slate-200">Scene</label>
+                <select id="artist-scene" name="Scene" required class="input-fly">
+                  <option value="">Choisir une scene</option>
+                  {scenes.map((scene) => <option value={scene.id} selected={scene.id === values.Scene}>{scene.name}</option>)}
+                </select>
+              </div>
+            </div>
+
+            <div class="space-y-2">
+              <span class="text-sm font-semibold text-slate-200">Genre</span>
+              <div class="grid gap-3 rounded-xl border border-white/15 bg-black/20 p-4 md:grid-cols-3">
+                {GENRE_OPTIONS.map((genre) => (
+                  <label class="flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-200 transition hover:border-cyan-300/40">
+                    <input
+                      type="checkbox"
+                      name="Genre"
+                      value={genre}
+                      checked={values.Genre.includes(genre)}
+                      class="h-4 w-4 rounded border-white/30 bg-transparent text-cyan-300 focus:ring-cyan-300"
+                    />
+                    <span>{genre}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <div class="grid gap-5 md:grid-cols-2">
+              <div class="space-y-2">
+                <label for="artist-image" class="text-sm font-semibold text-slate-200">Image principale</label>
+                <input
+                  id="artist-image"
+                  name="Image"
+                  type="file"
+                  accept="image/*"
+                  required
+                  class="input-fly file:mr-4 file:rounded-full file:border-0 file:bg-cyan-300/15 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-cyan-100"
+                />
+              </div>
+
+              <div class="space-y-2">
+                <label for="artist-gallery" class="text-sm font-semibold text-slate-200">Galerie</label>
+                <input
+                  id="artist-gallery"
+                  name="Galerie"
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  class="input-fly file:mr-4 file:rounded-full file:border-0 file:bg-cyan-300/15 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-cyan-100"
+                />
+              </div>
+            </div>
+
+            {errorMessage && (
+              <p class="rounded-xl border border-red-400/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+                {errorMessage}
+              </p>
+            )}
+
+            <div class="flex flex-col gap-3 sm:flex-row">
+              <button type="submit" class="btn-fly-primary justify-center">Creer l'artiste</button>
+              <a href="/artists" class="btn-fly-secondary justify-center">Retour aux artistes</a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+</Layout>

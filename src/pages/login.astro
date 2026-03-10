@@ -1,0 +1,98 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { buildAuthResponse, createServerPb, getErrorMessage, getSessionUser } from "../js/auth.js";
+
+const session = await getSessionUser(Astro);
+if (session.user) {
+  return new Response(null, {
+    status: 303,
+    headers: {
+      Location: "/profile",
+      ...(session.setCookie ? { "Set-Cookie": session.setCookie } : {}),
+    },
+  });
+}
+
+let errorMessage = "";
+let email = "";
+
+if (Astro.request.method === "POST") {
+  const formData = await Astro.request.formData();
+  email = `${formData.get("email") || ""}`.trim();
+  const password = `${formData.get("password") || ""}`;
+
+  try {
+    const pb = createServerPb();
+    await pb.collection("users").authWithPassword(email, password);
+    return buildAuthResponse(pb, "/profile");
+  } catch (error) {
+    errorMessage = getErrorMessage(error, "Impossible de se connecter.");
+  }
+}
+---
+
+<Layout
+  title="FlyTapFest | Connexion"
+  description="Connexion a votre compte FlyTapFest"
+  currentPath={Astro.url.pathname}
+>
+  <section class="section-fly">
+    <div class="container-fly">
+      <div class="mx-auto max-w-xl">
+        <div class="mb-8 text-center">
+          <p class="text-sm uppercase tracking-[0.2em] text-cyan-200/70">Espace membre</p>
+          <h1 class="mt-2 text-4xl font-bold text-white md:text-5xl">Connexion</h1>
+          <p class="mt-4 text-sm leading-7 text-slate-300 md:text-base">
+            Connecte-toi a ton compte FlyTapFest pour acceder a ton espace personnel.
+          </p>
+        </div>
+
+        <div class="card-fly p-6 md:p-8">
+          <form method="post" class="space-y-5">
+            <div class="space-y-2">
+              <label for="login-email" class="text-sm font-semibold text-slate-200">Email</label>
+              <input
+                id="login-email"
+                name="email"
+                type="email"
+                autocomplete="email"
+                required
+                value={email}
+                class="input-fly"
+                placeholder="vous@exemple.fr"
+              />
+            </div>
+
+            <div class="space-y-2">
+              <label for="login-password" class="text-sm font-semibold text-slate-200">Mot de passe</label>
+              <input
+                id="login-password"
+                name="password"
+                type="password"
+                autocomplete="current-password"
+                required
+                class="input-fly"
+                placeholder="Votre mot de passe"
+              />
+            </div>
+
+            {errorMessage && (
+              <p class="rounded-xl border border-red-400/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+                {errorMessage}
+              </p>
+            )}
+
+            <button type="submit" class="btn-fly-primary w-full justify-center">
+              Se connecter
+            </button>
+          </form>
+
+          <p class="mt-6 text-center text-sm text-slate-400">
+            Pas encore de compte ?
+            <a href="/register" class="font-semibold text-cyan-200 transition hover:text-fuchsia-200">Creer un compte</a>
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+</Layout>

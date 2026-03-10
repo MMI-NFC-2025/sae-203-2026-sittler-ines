@@ -1,0 +1,125 @@
+---
+const { currentPath = "/" } = Astro.props;
+const isHome = currentPath === "/";
+
+const links = [
+  { href: "/", label: "Accueil" },
+  { href: "/festival", label: "Le Festival" },
+  { href: "/programme", label: "Programme" },
+  { href: "/artists", label: "Artistes" },
+  { href: "/scenes", label: "Scenes" },
+  { href: "/infos", label: "Infos" },
+  { href: "/contact", label: "Contact" },
+  { href: "/login", label: "Connexion" },
+];
+
+const isActive = (href) =>
+  href === "/"
+    ? currentPath === "/"
+    : currentPath === href || currentPath.startsWith(`${href}/`);
+
+---
+
+<div data-menu-root>
+  <header
+    class:list={[
+      "top-0 z-30",
+      isHome
+        ? "absolute left-0 right-0 border-b-0 bg-transparent backdrop-blur-0"
+        : "sticky border-b border-white/10 bg-[#06070f] backdrop-blur-xl",
+    ]}
+  >
+    <div class="container-fly flex items-center justify-between py-3 md:py-4">
+      <a href="/" class="flex items-center gap-3">
+        <img src="/assets/icons/icon-logo-dark (1).svg" alt="Logo FlyTapFest" class="h-10 w-10 md:h-12 md:w-12" />
+        <span class="hidden font-display text-xl tracking-[0.2em] text-cyan-300 md:inline md:text-2xl">FLYTAPFEST</span>
+      </a>
+
+      <div class="flex items-center gap-3">
+        <button
+          data-menu-toggle
+          type="button"
+          class:list={[
+            "inline-flex items-center justify-center text-white md:hidden",
+            isHome
+              ? "h-10 w-10 rounded-none border-0 bg-transparent"
+              : "h-11 w-11 rounded-full border border-cyan-300/60 bg-[#0d1026] shadow-[0_0_16px_rgba(30,88,249,0.35)]",
+          ]}
+          aria-expanded="false"
+          aria-label="Ouvrir le menu"
+        >
+          <span class="sr-only">Menu</span>
+          <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 6h18M3 12h18M3 18h18"></path>
+          </svg>
+        </button>
+
+        <nav aria-label="Navigation principale" class="hidden md:block">
+          <ul class="flex flex-wrap items-center justify-end gap-2">
+            {
+              links.map((link) => (
+                <li>
+                  <a
+                    href={link.href}
+                    class:list={[
+                      "rounded-full px-3 py-2 text-xs font-semibold transition lg:text-sm",
+                      isActive(link.href)
+                        ? "bg-gradient-to-r from-cyan-400/35 to-fuchsia-400/35 text-white"
+                        : "text-slate-200 hover:text-cyan-200",
+                    ]}
+                    aria-current={isActive(link.href) ? "page" : undefined}
+                  >
+                    {link.label}
+                  </a>
+                </li>
+              ))
+            }
+          </ul>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <div data-menu-panel class="fixed inset-0 z-40 hidden bg-black/95 backdrop-blur md:hidden">
+    <div class="container-fly flex h-full flex-col">
+      <div class="flex items-center justify-end py-4">
+        <button
+          data-menu-close
+          type="button"
+          class="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/30 text-white"
+          aria-label="Fermer le menu"
+        >
+          <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M6 6l12 12M18 6L6 18"></path>
+          </svg>
+        </button>
+      </div>
+      <nav aria-label="Navigation mobile" class="flex-1">
+        <ul class="flex h-full flex-col items-center justify-center gap-6">
+          {
+            links.map((link) => (
+              <li>
+                <a
+                  href={link.href}
+                  class:list={[
+                    "text-2xl font-semibold tracking-wide transition",
+                    isActive(link.href) ? "text-cyan-300" : "text-white hover:text-fuchsia-300",
+                  ]}
+                  aria-current={isActive(link.href) ? "page" : undefined}
+                >
+                  {link.label}
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </nav>
+    </div>
+  </div>
+</div>
+
+<script>
+  import { initMenus } from "../js/menu.js";
+
+  initMenus();
+</script>

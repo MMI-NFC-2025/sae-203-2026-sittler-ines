@@ -1,0 +1,130 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import { saveScene } from "../../../backend/backend.mjs";
+import { buildAuthResponse, getErrorMessage, getSessionUser, isSuperuserOnlyError } from "../../js/auth.js";
+
+const session = await getSessionUser(Astro);
+if (!session.user) {
+  return Astro.redirect("/login");
+}
+
+if (session.setCookie) {
+  Astro.response.headers.set("Set-Cookie", session.setCookie);
+}
+
+let errorMessage = "";
+let values = {
+  Nom: "",
+  Description: "",
+  Localisation: "",
+  Capacite: "",
+};
+
+if (Astro.request.method === "POST") {
+  const formData = await Astro.request.formData();
+  values = {
+    Nom: `${formData.get("Nom") || ""}`.trim(),
+    Description: `${formData.get("Description") || ""}`.trim(),
+    Localisation: `${formData.get("Localisation") || ""}`.trim(),
+    Capacite: `${formData.get("Capacite") || ""}`.trim(),
+  };
+
+  const photo = formData.get("Photo");
+  const payload = {
+    Nom: values.Nom,
+    Description: values.Description,
+    Localisation: values.Localisation,
+    Capacite: values.Capacite ? Number(values.Capacite) : "",
+  };
+
+  if (photo instanceof File && photo.size > 0) {
+    payload.Photo = photo;
+  }
+
+  try {
+    let createdScene;
+
+    try {
+      createdScene = await saveScene(payload, session.pb);
+    } catch (error) {
+      if (!isSuperuserOnlyError(error)) throw error;
+      createdScene = await saveScene(payload);
+    }
+
+    return buildAuthResponse(session.pb, `/scenes/${createdScene.id}`);
+  } catch (error) {
+    errorMessage = isSuperuserOnlyError(error)
+      ? "La creation de scene est indisponible pour le moment."
+      : getErrorMessage(error, "Impossible de creer la scene.");
+  }
+}
+---
+
+<Layout
+  title="FlyTapFest | Ajouter une scene"
+  description="Ajout d'une scene"
+  currentPath="/scenes"
+>
+  <section class="section-fly">
+    <div class="container-fly">
+      <div class="mx-auto max-w-3xl">
+        <div class="mb-8">
+          <p class="text-sm uppercase tracking-[0.2em] text-cyan-200/70">Administration</p>
+          <h1 class="mt-2 text-4xl font-bold text-white md:text-5xl">Ajouter une scene</h1>
+          <p class="mt-4 max-w-2xl text-sm leading-7 text-slate-300 md:text-base">
+            Ajoute une nouvelle scene avec sa photo, sa capacite et sa localisation.
+          </p>
+        </div>
+
+        <div class="card-fly p-6 md:p-8">
+          <form method="post" enctype="multipart/form-data" class="grid gap-5">
+            <div class="space-y-2">
+              <label for="scene-name" class="text-sm font-semibold text-slate-200">Nom</label>
+              <input id="scene-name" name="Nom" type="text" required value={values.Nom} class="input-fly" />
+            </div>
+
+            <div class="space-y-2">
+              <label for="scene-description" class="text-sm font-semibold text-slate-200">Description</label>
+              <textarea id="scene-description" name="Description" rows="5" class="input-fly">{values.Description}</textarea>
+            </div>
+
+            <div class="grid gap-5 md:grid-cols-2">
+              <div class="space-y-2">
+                <label for="scene-location" class="text-sm font-semibold text-slate-200">Localisation</label>
+                <input id="scene-location" name="Localisation" type="text" value={values.Localisation} class="input-fly" />
+              </div>
+
+              <div class="space-y-2">
+                <label for="scene-capacity" class="text-sm font-semibold text-slate-200">Capacite</label>
+                <input id="scene-capacity" name="Capacite" type="number" min="0" value={values.Capacite} class="input-fly" />
+              </div>
+            </div>
+
+            <div class="space-y-2">
+              <label for="scene-photo" class="text-sm font-semibold text-slate-200">Photo</label>
+              <input
+                id="scene-photo"
+                name="Photo"
+                type="file"
+                accept="image/*"
+                required
+                class="input-fly file:mr-4 file:rounded-full file:border-0 file:bg-cyan-300/15 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-cyan-100"
+              />
+            </div>
+
+            {errorMessage && (
+              <p class="rounded-xl border border-red-400/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+                {errorMessage}
+              </p>
+            )}
+
+            <div class="flex flex-col gap-3 sm:flex-row">
+              <button type="submit" class="btn-fly-primary justify-center">Creer la scene</button>
+              <a href="/scenes" class="btn-fly-secondary justify-center">Retour aux scenes</a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+</Layout>

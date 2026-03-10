@@ -1,0 +1,110 @@
+---
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout
+  title="FlyTapFest | Infos pratiques"
+  description="Infos pratiques du festival FlyTapFest"
+  currentPath={Astro.url.pathname}
+>
+  <section class="section-fly">
+    <div class="container-fly space-y-8">
+      <div class="mb-2">
+        <p class="text-sm uppercase tracking-[0.2em] text-cyan-200/70">Infos pratiques</p>
+        <h1 class="title-gradient mt-2 text-4xl font-bold md:text-5xl">Preparer votre venue</h1>
+        <p class="mt-4 max-w-3xl text-sm leading-7 text-slate-300 md:text-base">
+          Tarifs, hebergements, transport, acces et FAQ : tout ce qu'il faut pour organiser votre venue au FlyTapFest.
+        </p>
+      </div>
+
+      <div class="flex flex-wrap gap-3 text-sm">
+        <a href="#tarifs" class="btn-fly-secondary px-4 py-2">Tarifs</a>
+        <a href="#hebergements" class="btn-fly-secondary px-4 py-2">Hebergements</a>
+        <a href="#transport" class="btn-fly-secondary px-4 py-2">Transport</a>
+        <a href="#faq" class="btn-fly-secondary px-4 py-2">FAQ</a>
+      </div>
+
+      <div class="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+        <article id="tarifs" class="card-fly space-y-4 p-6 scroll-mt-28">
+          <h2 class="text-2xl font-semibold text-white">Tarifs</h2>
+          <div class="space-y-3 text-sm leading-7 text-slate-300">
+            <p><span class="font-semibold text-white">Pass 1 jour</span><br />Adulte : 29 EUR | Reduit : 19 EUR</p>
+            <p><span class="font-semibold text-white">Pass 2 jours</span><br />Adulte : 49 EUR | Reduit : 32 EUR</p>
+            <p><span class="font-semibold text-white">Pass VIP</span><br />79 EUR avec acces prioritaire et zone dediee.</p>
+          </div>
+        </article>
+
+        <article id="hebergements" class="card-fly space-y-4 p-6 scroll-mt-28">
+          <h2 class="text-2xl font-semibold text-white">Hebergements</h2>
+          <ul class="list-disc space-y-2 pl-5 text-sm leading-7 text-slate-300">
+            <li>Hotels du centre-ville de Montbeliard a moins de 15 minutes.</li>
+            <li>Campings et aires de loisirs autour du Parc du Pres-la-Rose.</li>
+            <li>Locations courte duree pour les groupes et equipes artistiques.</li>
+          </ul>
+        </article>
+
+        <article id="transport" class="card-fly space-y-4 p-6 scroll-mt-28">
+          <h2 class="text-2xl font-semibold text-white">Transport</h2>
+          <ul class="list-disc space-y-2 pl-5 text-sm leading-7 text-slate-300">
+            <li>Acces en train via la gare de Montbeliard, puis navette ou bus urbain.</li>
+            <li>Acces voiture avec parkings signales a proximite du site.</li>
+            <li>Covoiturage recommande pour fluidifier l'arrivee en fin de journee.</li>
+          </ul>
+        </article>
+
+        <article class="card-fly space-y-4 p-6">
+          <h2 class="text-2xl font-semibold text-white">Acces au site</h2>
+          <p class="text-sm leading-7 text-slate-300">
+            Parc du Pres-la-Rose, Montbeliard. Le site est balise depuis les parkings et des zones d'accueil orientent le public vers les scenes.
+          </p>
+        </article>
+
+        <article class="card-fly space-y-4 p-6">
+          <h2 class="text-2xl font-semibold text-white">Horaires</h2>
+          <p class="text-sm leading-7 text-slate-300">
+            Ouverture du site a 17h00, lancement des performances en fin d'apres-midi et cloture apres le final lumineux de chaque soir.
+          </p>
+        </article>
+
+        <article class="card-fly space-y-4 p-6">
+          <h2 class="text-2xl font-semibold text-white">Services</h2>
+          <ul class="list-disc space-y-2 pl-5 text-sm leading-7 text-slate-300">
+            <li>Food-trucks, points d'eau et espaces de pause.</li>
+            <li>Accueil PMR, sanitaires et point d'information.</li>
+            <li>Zone famille et consigne legere selon disponibilites.</li>
+          </ul>
+        </article>
+      </div>
+
+      <div id="faq" class="card-fly p-6 scroll-mt-28">
+        <h2 class="mb-4 text-2xl font-semibold text-white">FAQ</h2>
+        <div class="space-y-3">
+          <details class="rounded-xl border border-white/15 bg-black/20 p-4" open>
+            <summary class="cursor-pointer font-semibold text-white">Le festival est-il accessible PMR ?</summary>
+            <p class="mt-2 text-sm leading-7 text-slate-300">
+              Oui, des cheminements adaptes et une zone accueil dediee sont prevus sur le site.
+            </p>
+          </details>
+          <details class="rounded-xl border border-white/15 bg-black/20 p-4">
+            <summary class="cursor-pointer font-semibold text-white">Peut-on sortir puis revenir ?</summary>
+            <p class="mt-2 text-sm leading-7 text-slate-300">
+              Oui, sur presentation du bracelet ou du titre d'acces remis a l'entree.
+            </p>
+          </details>
+          <details class="rounded-xl border border-white/15 bg-black/20 p-4">
+            <summary class="cursor-pointer font-semibold text-white">Y a-t-il des places assises ?</summary>
+            <p class="mt-2 text-sm leading-7 text-slate-300">
+              Oui, plusieurs zones assises sont prevues pres des scenes et dans les espaces de pause.
+            </p>
+          </details>
+          <details class="rounded-xl border border-white/15 bg-black/20 p-4">
+            <summary class="cursor-pointer font-semibold text-white">Peut-on venir en famille ?</summary>
+            <p class="mt-2 text-sm leading-7 text-slate-300">
+              Oui, le festival est pense pour un public large avec des espaces plus calmes et une circulation facile sur site.
+            </p>
+          </details>
+        </div>
+      </div>
+    </div>
+  </section>
+</Layout>

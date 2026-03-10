@@ -1,0 +1,41 @@
+---
+const {
+  src = "",
+  alt = "",
+  class: className = "",
+  width,
+  height,
+  loading = "lazy",
+  record = null,
+  recordImage = "",
+} = Astro.props;
+
+const resolvedSrc =
+  src ||
+  (record && recordImage ? record[recordImage] : "") ||
+  record?.image ||
+  record?.photo ||
+  record?.avatar ||
+  "";
+
+const resolvedAlt =
+  alt ||
+  record?.name ||
+  record?.Nom ||
+  record?.nom ||
+  record?.nomMaison ||
+  "Image";
+---
+
+{
+  resolvedSrc && (
+    <img
+      src={resolvedSrc}
+      alt={resolvedAlt}
+      class={className}
+      width={width}
+      height={height}
+      loading={loading}
+    />
+  )
+}

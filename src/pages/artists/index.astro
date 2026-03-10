@@ -1,0 +1,103 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import ArtistCard from "../../components/ArtistCard.astro";
+import { filterArtists, getArtists, getScenes } from "../../../backend/backend.mjs";
+
+const artistsResult = await getArtists();
+const scenesResult = await getScenes();
+const artists = artistsResult.items;
+const scenes = scenesResult.items;
+const loadError = artistsResult.error || scenesResult.error;
+
+const search = new URL(Astro.request.url).searchParams;
+const selectedGenre = search.get("genre") || "";
+const selectedScene = search.get("scene") || "";
+const selectedDate = search.get("date") || "";
+
+const filteredArtists = filterArtists(artists, {
+  genre: selectedGenre,
+  scene: selectedScene,
+  date: selectedDate,
+});
+
+const genres = Array.from(
+  new Set(
+    artists.flatMap((artist) =>
+      Array.isArray(artist.genres) && artist.genres.length
+        ? artist.genres
+        : artist.genre
+          ? artist.genre.split(",").map((item) => item.trim()).filter(Boolean)
+          : [],
+    ),
+  ),
+).sort((a, b) => a.localeCompare(b, "fr"));
+const dates = Array.from(new Set(artists.map((artist) => artist.date).filter(Boolean))).sort();
+---
+
+<Layout
+  title="FlyTapFest | Artistes"
+  description="Tous les artistes du FlyTapFest"
+  currentPath={Astro.url.pathname}
+>
+  <section class="section-fly">
+    <div class="container-fly">
+      <div class="mb-8 flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p class="text-sm uppercase tracking-[0.2em] text-cyan-200/70">Line-up</p>
+          <h1 class="title-gradient mt-2 text-4xl font-bold md:text-5xl">Les Artistes</h1>
+        </div>
+        <a href="/artists/create" class="btn-fly-secondary text-sm">Ajouter un artiste</a>
+      </div>
+
+      <form method="GET" class="card-fly mb-8 grid gap-4 p-4 md:grid-cols-4">
+        <label class="grid gap-2 text-sm">
+          <span class="text-slate-300">Genre</span>
+          <select name="genre" class="input-fly">
+            <option value="">Tous</option>
+            {genres.map((genre) => <option value={genre} selected={genre === selectedGenre}>{genre}</option>)}
+          </select>
+        </label>
+
+        <label class="grid gap-2 text-sm">
+          <span class="text-slate-300">Scene</span>
+          <select name="scene" class="input-fly">
+            <option value="">Toutes</option>
+            {scenes.map((scene) => <option value={scene.id} selected={scene.id === selectedScene}>{scene.name}</option>)}
+          </select>
+        </label>
+
+        <label class="grid gap-2 text-sm">
+          <span class="text-slate-300">Date</span>
+          <select name="date" class="input-fly">
+            <option value="">Toutes</option>
+            {dates.map((date) => <option value={date} selected={date === selectedDate}>{date}</option>)}
+          </select>
+        </label>
+
+        <div class="flex items-end gap-2">
+          <button type="submit" class="btn-fly-primary w-full justify-center text-sm">Filtrer</button>
+          <a href="/artists" class="btn-fly-secondary w-full justify-center text-sm">Reset</a>
+        </div>
+      </form>
+
+      {
+        loadError ? (
+          <div class="card-fly p-8 text-center text-slate-300">
+            {loadError}
+          </div>
+        ) : filteredArtists.length ? (
+          <div class="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+            {filteredArtists.map((artist) => <ArtistCard artist={artist} />)}
+          </div>
+        ) : (
+          <div class="card-fly p-8 text-center text-slate-300">
+            {artists.length ? "Aucun artiste ne correspond aux filtres." : "Aucun artiste disponible pour le moment."}
+          </div>
+        )
+      }
+    </div>
+  </section>
+</Layout>
+
+
+

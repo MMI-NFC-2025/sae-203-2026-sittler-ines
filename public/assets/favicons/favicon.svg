@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" width="1000" height="1000"><style>
+    #light-icon {
+      display: inline;
+    }
+    #dark-icon {
+      display: none;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      #light-icon {
+        display: none;
+      }
+      #dark-icon {
+        display: inline;
+      }
+    }
+  </style><g id="light-icon"><svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" width="1000" height="1000"><g><g transform="matrix(8.19672131147541,0,0,8.19672131147541,5.684341886080802e-14,311.4754098360656)"><svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" width="122" height="46" viewBox="0 0 122 46"><image width="122" height="46" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHoAAAAuCAMAAADQmP03AAAAUVBMVEVHcEweWPgKChQKChMeWPcDBfIdWPccWPcLCxUCBvUfWPggWPceWPgICBQLCxQICBgCBvMBB/QKChUKChMKChQdWPkCB/QQL/YFCJgHCV8XQ/h2NZ8uAAAAFHRSTlMAoICfgGBgQGCgvyDgQMAggL+g37+85/QAAACsSURBVHic7ZXbCsIwEESnN7Vqve5u0/7/h7pRWiv2QREl4AwMBDLJgQxsoApsdYO1LnG0VtvRo8Q1rHtVtSeFGAnWuYOUmqHyG3qzmJ3mO7mrQDLoCifJkbtXvveeMl24S9zQNRrZYS9nt8wfSAbNrtn1n3c9ROPr1nbwaHGN+ut+u2uiiSaa6M9m+GT4SfMyem6QPs7RdNDsml2za3bN74Noookmmmiif4C+APhSywm4KG2SAAAAAElFTkSuQmCC"></image></svg></g></g></svg></g><g id="dark-icon"><svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" width="1000" height="1000"><g><g transform="matrix(8.333333333333334,0,0,8.333333333333334,-5.684341886080802e-14,308.3333333333333)"><svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" width="120" height="46" viewBox="0 0 120 46"><image width="120" height="46" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHgAAAAuCAMAAADUbS0KAAAAOVBMVEVHcEweWPf///////////////8eWPcdWPf///8eWPn8/f8gWPceWPj///8eWPn///+Oq/xmjfu6zP5QBn+0AAAADnRSTlMAgIDAYECgYJ+f5CDgIF5E8zIAAACRSURBVHic7ZVRDsIgEESHYltFnYXe/7CutJ9o1cSEpDPJ+1t4CZMsIAHyipuTjExWuFRaWUhme5c0MWCw7GOZxQ+U9hw6Ed+dEXHjq0ycN57ioXKyc6WVTsTqWB0fr+PgtwZeMDvrO0aMK//tWGKJJZb4pXhnZcaPxXsrsxuxOlbH6lgd65OQWGKJJZZY4h/ED/G3jRdXJLm4AAAAAElFTkSuQmCC"></image></svg></g></g></svg></g></svg>

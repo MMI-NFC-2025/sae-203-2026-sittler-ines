@@ -1,0 +1,43 @@
+---
+import { Image } from "astro:assets";
+import logoDoubs from "../assets/logo-doubs1.svg";
+---
+
+<footer class="border-t border-[#1e58f94d] bg-[#050508]">
+  <div class="container-fly flex flex-col items-center gap-14 py-16 text-center md:py-20">
+    <h2 class="font-display text-5xl leading-[0.9] tracking-[-0.04em] text-transparent md:text-7xl bg-gradient-to-r from-[#1e58f9] to-[#ff00d6] bg-clip-text">
+      FLYTAPFEST
+    </h2>
+
+    <p class="text-3xl font-semibold tracking-[-0.02em] text-slate-300">6-7 juin 2026</p>
+
+    <div class="grid gap-3 text-left text-sm font-bold text-slate-300 md:grid-cols-3 md:text-center">
+      <p class="flex items-center gap-2">
+        <span class="inline-block size-5 rounded-full border border-white/30"></span>
+        Parc du Pres-la-Rose, Montbeliard
+      </p>
+      <p class="flex items-center gap-2">
+        <span class="inline-block size-5 rounded-full border border-white/30"></span>
+        +33 1 23 45 67 89
+      </p>
+      <p class="flex items-center gap-2">
+        <span class="inline-block size-5 rounded-full border border-white/30"></span>
+        contact@flytapfest.fr
+      </p>
+    </div>
+
+    <div class="space-y-2 text-center">
+      <p class="text-2xl font-semibold text-slate-300">En partenariat avec</p>
+      <p class="text-2xl font-semibold text-[#9747ff]">Ville de Montbeliard</p>
+    </div>
+
+    <Image src={logoDoubs} alt="Ville de Montbeliard" class="h-14 w-auto" />
+
+    <div class="flex items-center gap-6">
+      <a href="https://instagram.com" target="_blank" rel="noreferrer" aria-label="Instagram" class="text-slate-300 hover:text-white">Instagram</a>
+      <a href="https://facebook.com" target="_blank" rel="noreferrer" aria-label="Facebook" class="text-slate-300 hover:text-white">Facebook</a>
+    </div>
+
+    <p class="text-xs text-slate-500">(c) 2026 FlyTapFest. Tous droits reserves.</p>
+  </div>
+</footer>

@@ -1,0 +1,140 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { saveContact } from "../../backend/backend.mjs";
+import { getErrorMessage, getSessionUser, isSuperuserOnlyError } from "../js/auth.js";
+
+const session = await getSessionUser(Astro);
+if (session.setCookie) {
+  Astro.response.headers.set("Set-Cookie", session.setCookie);
+}
+
+const searchParams = new URL(Astro.request.url).searchParams;
+
+let successMessage = searchParams.get("sent") === "1" ? "Votre message a bien ete envoye." : "";
+let errorMessage = "";
+let values = {
+  nom: session.user?.name || "",
+  email: session.user?.email || "",
+  sujet: "",
+  message: "",
+};
+
+if (Astro.request.method === "POST") {
+  const formData = await Astro.request.formData();
+  values = {
+    nom: `${formData.get("nom") || ""}`.trim(),
+    email: `${formData.get("email") || ""}`.trim(),
+    sujet: `${formData.get("sujet") || ""}`.trim(),
+    message: `${formData.get("message") || ""}`.trim(),
+  };
+
+  try {
+    const payload = {
+      nom: values.nom,
+      email: values.email,
+      sujet: values.sujet,
+      message: values.message,
+    };
+
+    try {
+      await saveContact(payload, session.pb);
+    } catch (error) {
+      if (!isSuperuserOnlyError(error)) throw error;
+      await saveContact(payload);
+    }
+
+    return new Response(null, {
+      status: 303,
+      headers: {
+        Location: "/contact?sent=1",
+        ...(session.setCookie ? { "Set-Cookie": session.setCookie } : {}),
+      },
+    });
+  } catch (error) {
+    errorMessage = isSuperuserOnlyError(error)
+      ? "L'envoi du message est temporairement indisponible. Merci de reessayer plus tard."
+      : getErrorMessage(error, "Impossible d'envoyer le message.");
+    successMessage = "";
+  }
+}
+---
+
+<Layout
+  title="FlyTapFest | Contact"
+  description="Contact FlyTapFest"
+  currentPath={Astro.url.pathname}
+>
+  <section class="section-fly">
+    <div class="container-fly grid gap-8 lg:grid-cols-[0.95fr_1.05fr]">
+      <article class="card-fly space-y-6 p-6 md:p-8">
+        <div class="space-y-4">
+          <p class="text-sm uppercase tracking-[0.2em] text-cyan-200/70">Contact</p>
+          <h1 class="title-gradient text-4xl font-bold md:text-5xl">Parlons du festival</h1>
+          <p class="text-sm leading-7 text-slate-300">
+            Une question sur la programmation, les acces, un partenariat ou votre venue ?
+            L'equipe FlyTapFest vous repond dans les meilleurs delais.
+          </p>
+        </div>
+
+        <div class="space-y-3 text-sm text-slate-300">
+          <p><span class="font-semibold text-white">Email :</span> contact@flytapfest.fr</p>
+          <p><span class="font-semibold text-white">Telephone :</span> +33 1 23 45 67 89</p>
+          <p><span class="font-semibold text-white">Adresse :</span> Parc du Pres-la-Rose, Montbeliard</p>
+        </div>
+
+        <div class="space-y-3 border-t border-white/10 pt-5">
+          <h2 class="text-2xl font-semibold text-white">Reseaux sociaux</h2>
+          <div class="flex flex-wrap gap-3 text-sm">
+            <a href="https://instagram.com/flytapfest" target="_blank" rel="noreferrer" class="btn-fly-secondary px-4 py-2">Instagram</a>
+            <a href="https://facebook.com/flytapfest" target="_blank" rel="noreferrer" class="btn-fly-secondary px-4 py-2">Facebook</a>
+            <a href="https://tiktok.com/@flytapfest" target="_blank" rel="noreferrer" class="btn-fly-secondary px-4 py-2">TikTok</a>
+          </div>
+        </div>
+      </article>
+
+      <article class="card-fly p-6 md:p-8">
+        <h2 class="mb-5 text-2xl font-semibold text-white">Envoyer un message</h2>
+        <form method="post" class="grid gap-4">
+          <label class="grid gap-2 text-sm">
+            <span class="text-slate-300">Nom</span>
+            <input class="input-fly" type="text" name="nom" placeholder="Votre nom" value={values.nom} required />
+          </label>
+
+          <label class="grid gap-2 text-sm">
+            <span class="text-slate-300">Email</span>
+            <input class="input-fly" type="email" name="email" placeholder="vous@email.fr" value={values.email} required />
+          </label>
+
+          <label class="grid gap-2 text-sm">
+            <span class="text-slate-300">Sujet</span>
+            <input class="input-fly" type="text" name="sujet" placeholder="Sujet de votre message" value={values.sujet} required />
+          </label>
+
+          <label class="grid gap-2 text-sm">
+            <span class="text-slate-300">Message</span>
+            <textarea
+              class="input-fly min-h-32 resize-y"
+              name="message"
+              placeholder="Votre message..."
+              required
+            >{values.message}</textarea>
+          </label>
+
+          {successMessage && (
+            <p class="rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
+              {successMessage}
+            </p>
+          )}
+
+          {errorMessage && (
+            <p class="rounded-xl border border-red-400/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+              {errorMessage}
+            </p>
+          )}
+
+          <button type="submit" class="btn-fly-primary w-fit">Envoyer</button>
+        </form>
+      </article>
+    </div>
+  </section>
+</Layout>

@@ -1,1 +1,83 @@
+@import url("https://fonts.googleapis.com/css2?family=Exo:wght@400;500;600;700&display=swap");
 @import "tailwindcss";
+
+@theme {
+  --font-sans: "Exo", "Segoe UI", sans-serif;
+  --font-display: "Monoton", cursive;
+
+  --color-fly-bg: #04040b;
+  --color-fly-bg-soft: #0b0a18;
+  --color-fly-card: #121127;
+  --color-fly-border: rgba(255, 255, 255, 0.14);
+  --color-fly-text: #f8faff;
+  --color-fly-muted: #9aa7c2;
+  --color-fly-cyan: #00d9ff;
+  --color-fly-magenta: #ff00e5;
+  --color-fly-purple: #9d4edd;
+}
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: var(--font-sans);
+    color: var(--color-fly-text);
+    background:
+      radial-gradient(circle at 20% 0%, rgba(0, 217, 255, 0.14), transparent 40%),
+      radial-gradient(circle at 80% 10%, rgba(255, 0, 229, 0.12), transparent 30%),
+      linear-gradient(160deg, var(--color-fly-bg) 0%, var(--color-fly-bg-soft) 100%);
+    overflow-x: hidden;
+  }
+
+  img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    letter-spacing: 0.03em;
+  }
+}
+
+@layer components {
+  .container-fly {
+    @apply mx-auto w-full max-w-6xl px-4 md:px-6;
+  }
+
+  .section-fly {
+    @apply py-14 md:py-20;
+  }
+
+  .card-fly {
+    @apply rounded-2xl border border-white/15 bg-[#121127]/80 shadow-[0_20px_45px_-25px_rgba(0,0,0,0.9)];
+  }
+
+  .title-gradient {
+    @apply text-white;
+  }
+
+  .btn-fly-primary {
+    @apply inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-cyan-400 via-violet-500 to-fuchsia-500 px-5 py-3 font-semibold text-white shadow-[0_0_24px_rgba(0,217,255,0.35)] transition hover:-translate-y-0.5 hover:shadow-[0_0_32px_rgba(255,0,229,0.45)];
+  }
+
+  .btn-fly-secondary {
+    @apply inline-flex items-center gap-2 rounded-full border border-cyan-300/60 px-5 py-3 font-semibold text-cyan-200 transition hover:border-fuchsia-300 hover:text-fuchsia-200;
+  }
+
+  .input-fly {
+    @apply w-full rounded-xl border border-white/20 bg-black/30 px-4 py-2.5 text-sm text-white outline-none ring-0 transition placeholder:text-slate-400 focus:border-cyan-300;
+  }
+}

@@ -1,0 +1,28 @@
+---
+import Pbimage from "./Pbimage.astro";
+import { formatDate } from "../../backend/backend.mjs";
+
+const { artist } = Astro.props;
+---
+
+<article class="card-fly overflow-hidden transition hover:-translate-y-1">
+  <a href={`/artists/${artist.slug || artist.id}`} class="grid h-full grid-rows-[220px_1fr]">
+    <Pbimage
+      src={artist.image}
+      alt={artist.name}
+      loading="lazy"
+      class="h-full w-full object-cover"
+    />
+    <div class="space-y-3 p-5">
+      <h3 class="text-xl font-bold text-white">{artist.name}</h3>
+      {artist.specialty && <p class="text-sm font-semibold text-cyan-200">{artist.specialty}</p>}
+      {artist.bio && <p class="line-clamp-3 text-sm leading-6 text-slate-300">{artist.bio}</p>}
+      <div class="flex flex-wrap gap-2">
+        {artist.genre && <span class="rounded-full border border-cyan-300/40 px-2.5 py-1 text-xs text-cyan-200">{artist.genre}</span>}
+        {artist.sceneName && <span class="rounded-full border border-fuchsia-300/40 px-2.5 py-1 text-xs text-fuchsia-200">{artist.sceneName}</span>}
+        {artist.date && <span class="rounded-full border border-violet-300/40 px-2.5 py-1 text-xs text-violet-200">{formatDate(artist.date)}</span>}
+      </div>
+    </div>
+  </a>
+</article>
+
