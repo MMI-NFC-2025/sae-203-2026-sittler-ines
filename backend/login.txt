@@ -1,9 +1,6 @@
-Variables recommandees (.env):
-PUBLIC_POCKETBASE_URL=https://sae203.ines-sittler.fr
-PUBLIC_PB_ARTISTS_COLLECTION=artistes
-PUBLIC_PB_SCENES_COLLECTION=scenes
+Ce projet utilise une configuration fixe.
+PocketBase utilise directement l'URL suivante :
+https://sae203.ines-sittler.fr
 
-Optionnel (backend/backend.mjs ecriture/admin):
-PB_ADMIN_EMAIL=...
-PB_ADMIN_PASSWORD=...
-RUN_WRITE_TESTS=1
+Pour tester les ecritures dans backend/test-back.js :
+mettre TEST_WRITE a true dans le fichier.

@@ -1,6 +1,6 @@
 ---
 import Layout from "../../layouts/Layout.astro";
-import { getScenes, saveArtist } from "../../../backend/backend.mjs";
+import { createArtist, getScenes } from "../../../backend/backend.mjs";
 import { buildAuthResponse, getErrorMessage, getSessionUser, isSuperuserOnlyError } from "../../js/auth.js";
 
 const GENRE_OPTIONS = ["Tap dance", "Electro", "Experimental tap"];
@@ -64,10 +64,10 @@ if (Astro.request.method === "POST") {
     let createdArtist;
 
     try {
-      createdArtist = await saveArtist(payload, session.pb);
+      createdArtist = await createArtist(payload, session.pb);
     } catch (error) {
       if (!isSuperuserOnlyError(error)) throw error;
-      createdArtist = await saveArtist(payload);
+      createdArtist = await createArtist(payload);
     }
 
     return buildAuthResponse(session.pb, `/artists/${createdArtist.id}`);

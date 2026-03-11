@@ -1,6 +1,6 @@
 ---
 import Layout from "../../layouts/Layout.astro";
-import { saveScene } from "../../../backend/backend.mjs";
+import { createScene } from "../../../backend/backend.mjs";
 import { buildAuthResponse, getErrorMessage, getSessionUser, isSuperuserOnlyError } from "../../js/auth.js";
 
 const session = await getSessionUser(Astro);
@@ -45,10 +45,10 @@ if (Astro.request.method === "POST") {
     let createdScene;
 
     try {
-      createdScene = await saveScene(payload, session.pb);
+      createdScene = await createScene(payload, session.pb);
     } catch (error) {
       if (!isSuperuserOnlyError(error)) throw error;
-      createdScene = await saveScene(payload);
+      createdScene = await createScene(payload);
     }
 
     return buildAuthResponse(session.pb, `/scenes/${createdScene.id}`);

@@ -1,4 +1,6 @@
 import {
+  createArtist,
+  createScene,
   getArtistById,
   getArtistsAlphabetical,
   getArtistsByDate,
@@ -6,9 +8,12 @@ import {
   getArtistsBySceneName,
   getSceneById,
   getScenesByName,
-  saveArtist,
-  saveScene,
+  updateArtist,
+  updateScene,
 } from "./backend.mjs";
+
+// Passe a true si tu veux aussi tester la creation et la modification.
+const TEST_WRITE = false;
 
 async function run() {
   console.log("=== TEST BACKEND POCKETBASE ===");
@@ -25,7 +30,7 @@ async function run() {
   const firstArtist = artistsByName[0];
   if (firstArtist) {
     const artist = await getArtistById(firstArtist.id);
-    console.log("getArtistById:", artist?.id, artist?.name || artist?.title || artist?.nom);
+    console.log("getArtistById:", artist?.id, artist?.Nom);
   } else {
     console.log("getArtistById: skip (aucun artiste)");
   }
@@ -33,37 +38,46 @@ async function run() {
   const firstScene = scenesByName[0];
   if (firstScene) {
     const scene = await getSceneById(firstScene.id);
-    console.log("getSceneById:", scene?.id, scene?.name || scene?.title || scene?.nom);
+    console.log("getSceneById:", scene?.id, scene?.Nom);
 
     const artistsBySceneId = await getArtistsBySceneId(firstScene.id);
     console.log("getArtistsBySceneId:", artistsBySceneId.length);
 
-    const sceneName = firstScene.name || firstScene.title || firstScene.nom || "";
-    if (sceneName) {
-      const artistsBySceneName = await getArtistsBySceneName(sceneName);
-      console.log("getArtistsBySceneName:", artistsBySceneName.length);
-    } else {
-      console.log("getArtistsBySceneName: skip (nom de scene absent)");
-    }
+    const artistsBySceneName = await getArtistsBySceneName(firstScene.Nom);
+    console.log("getArtistsBySceneName:", artistsBySceneName.length);
   } else {
     console.log("getSceneById/getArtistsBySceneId/getArtistsBySceneName: skip (aucune scene)");
   }
 
-  if (process.env.RUN_WRITE_TESTS === "1") {
-    const savedArtist = await saveArtist({
-      name: `Test Artist ${Date.now()}`,
-      bio: "Record de test",
-      genre: "Test",
+  if (TEST_WRITE) {
+    const createdScene = await createScene({
+      Nom: `Scene test ${Date.now()}`,
+      Description: "Scene creee depuis test-back.js",
+      Localisation: "Test",
+      Capacite: 100,
     });
-    console.log("saveArtist:", savedArtist?.id);
+    console.log("createScene:", createdScene?.id);
 
-    const savedScene = await saveScene({
-      name: `Test Scene ${Date.now()}`,
-      description: "Record de test",
+    const updatedScene = await updateScene(createdScene.id, {
+      Description: "Scene modifiee depuis test-back.js",
     });
-    console.log("saveScene:", savedScene?.id);
+    console.log("updateScene:", updatedScene?.id);
+
+    const createdArtist = await createArtist({
+      Nom: `Artiste test ${Date.now()}`,
+      Description: "Artiste cree depuis test-back.js",
+      Date: new Date().toISOString(),
+      Scene: createdScene.id,
+      Genre: ["Test"],
+    });
+    console.log("createArtist:", createdArtist?.id);
+
+    const updatedArtist = await updateArtist(createdArtist.id, {
+      Description: "Artiste modifie depuis test-back.js",
+    });
+    console.log("updateArtist:", updatedArtist?.id);
   } else {
-    console.log("saveArtist/saveScene: skip (set RUN_WRITE_TESTS=1 pour tester les ecritures)");
+    console.log("create/update: skip (mets TEST_WRITE a true pour tester les ecritures)");
   }
 }
 
