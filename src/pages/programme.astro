@@ -48,7 +48,10 @@ function formatDayLabel(dateKey) {
 
 function formatTimeLabel(value) {
   const { timeKey } = parseDateParts(value);
-  return timeKey || "Horaire a confirmer";
+  if (!timeKey) return "Horaire a confirmer";
+
+  // Format simple pour afficher 20h00 au lieu de 20:00
+  return timeKey.replace(":", "h");
 }
 
 function sortByDate(a, b) {
